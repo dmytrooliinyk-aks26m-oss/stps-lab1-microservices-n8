@@ -41,8 +41,15 @@ async def create_order(order: OrderCreate) -> dict:
     except httpx.RequestError as exc:
         raise HTTPException(status_code=503, detail=f"Inventory unavailable: {exc}") from exc
     if resp.status_code != 200:
-        raise HTTPException(status_code=resp.status_code, detail=resp.json().get("detail", "Error"))
+        detail = resp.json().get("detail", "Error")
+        raise HTTPException(status_code=resp.status_code, detail=detail)
     data = resp.json()
-    new_order = {"order_id": len(ORDERS_DB) + 1, "item_id": order.item_id, "quantity": order.quantity, "remaining_stock": data["remaining_stock"], "status": "confirmed"}
+    new_order = {
+        "order_id": len(ORDERS_DB) + 1,
+        "item_id": order.item_id,
+        "quantity": order.quantity,
+        "remaining_stock": data["remaining_stock"],
+        "status": "confirmed",
+    }
     ORDERS_DB.append(new_order)
     return new_order
