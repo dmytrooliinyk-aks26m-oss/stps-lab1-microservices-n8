@@ -1,0 +1,24 @@
+name: Microservices CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Lint and compile microservices
+        run: |
+          pip install flake8 fastapi uvicorn httpx pydantic
+          flake8 inventory_service/main.py order_service/main.py --max-line-length=120
+          python -m py_compile inventory_service/main.py order_service/main.py
+      - name: Validate Docker Compose config
+        run: docker compose config -q
